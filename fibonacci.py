@@ -53,7 +53,7 @@ def fib_record(n):
             return n
         x = fib((n >> 1) - 1)
         y = fib(n >> 1)
-        if n & 0x1:
+        if isodd(n):
             x += y
             return x * x + y * y
         else:
@@ -68,9 +68,9 @@ def fast_fib_memory1(n):
             k = n >> 1
             dp(F, k - 1)
             dp(F, k)
-            if (n & 0x1) == 1:
+            if isodd(n):
                 F[k + 1] = F[k] + F[k - 1]
-                F[n] = F[k] * F[k] + F[k + 1] * F[k + 1]
+                F[n] = F[k]**2 + F[k + 1]**2
             else:
                 F[n] = F[k] * (F[k] + 2 * F[k - 1])
 
@@ -85,7 +85,7 @@ def fast_fib_memory2(n):
         if n not in F:
             k = n >> 1
             dp(F, k)
-            if (n & 0x1) == 1:
+            if isodd(n):
                 dp(F, k + 1)
                 F[n] = F[k]**2 + F[k + 1]**2
             else:
@@ -112,17 +112,39 @@ def fast_fib_lur_cache(n):
         return y * (y + 2 * x)
 
 
-def fast_fib_bottom_up(n):
-    x, y, l = 0, 1, n.bit_length()
+def fast_fib_bottom_up1(n):
+    x, y, l = 1, 0, n.bit_length()
     for i in range(l - 1, 0, -1):
-        x, y = x * (x + 2 * y), (x * x + y * y)
-        if isodd(n >> i):
-            x, y = x + y, x
+        u = x**2
+        v = y**2
+        z = (x + y)**2
+        if isodd(n>>i):
+            x = z - u
+            y = z + v
+        else:
+            x = u + v
+            y = z - u
 
-    r = x * (x + 2 * y)
+    z = (x + y)**2
     if isodd(n):
-        r += x * x + y * y
-    return r
+        return z + y**2
+    else:
+        return z - x**2
+
+
+def fast_fib_bottom_up2(n):
+    x, y, l = 1, 0, n.bit_length()
+    for i in range(l - 1, 0, -1):
+        if isodd(n >> i):
+            x, y = y * (y + 2 * x), (x * x + y * y)
+            y += x
+        else:
+            y, x = y * (y + 2 * x), (x * x + y * y)
+
+    if isodd(n):
+        x += y
+        return x * x + y * y
+    return y * (y + 2 * x)
 
 
 def fib_fast_expt(n):
@@ -157,9 +179,10 @@ for i in range(101):
     assert fib1(i) == fib2(i)
     assert fib1(i) == fib3(i)
     assert fib1(i) == fib4(i)
+    assert fib1(i) == fast_fib_bottom_up1(i)
+    assert fib1(i) == fast_fib_bottom_up2(i)
+    assert fib1(i) == fast_fib_lur_cache(i)
     assert fib1(i) == fast_fib_memory1(i)
     assert fib1(i) == fast_fib_memory2(i)
-    assert fib1(i) == fast_fib_lur_cache(i)
-    assert fib1(i) == fast_fib_bottom_up(i)
     assert fib1(i) == fib_fast_expt(i)
     # print("fib1(%3d) = %d" % (i, fib1(i)))
