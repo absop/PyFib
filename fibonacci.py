@@ -88,17 +88,43 @@ def fib_fast_memoize(n):
 
 
 @lru_cache(maxsize=128)
-def fib_fast_lur_cache(n):
+def fib_fast_lur_cache1(n):
     if n < 16:
         return fib_ordinary4(n)
     k = n >> 1
-    x = fib_fast_lur_cache(k - 1)
-    y = fib_fast_lur_cache(k)
+    x = fib_fast_lur_cache1(k - 1)
+    y = fib_fast_lur_cache1(k)
     if isodd(n):
         x += y
         return x * x + y * y
     else:
         return y * (y + 2 * x)
+
+
+@lru_cache(maxsize=128)
+def fib2_fast_lur_cache(n):
+    if n < 2:
+        return 0, 1
+
+    k = n >> 1
+    g = -2 if isodd(k) else 2
+    x, y = fib2_fast_lur_cache(k)
+    xx = x**2
+    yy = y**2
+    xy = xx + yy
+    yx = yy * 4 - xx + g
+    if isodd(n):
+        return yx - xy, yx
+    else:
+        return xy, yx - xy
+
+
+def fib_fast_lur_cache2(n):
+    if n < 2:
+        return n
+
+    x, y = fib2_fast_lur_cache(n)
+    return y
 
 
 def fib_fast_bottom_up1(n):
@@ -331,7 +357,7 @@ def fib_fast_matrix_expt(n):
 
 
 if __name__ == "__main__":
-    functions = [
+    fast_functions = [
         fib_fast_bottom_up_cached1,
         fib_fast_bottom_up_cached2,
         fib_fast_bottom_up1,
@@ -340,8 +366,15 @@ if __name__ == "__main__":
         fib_fast_bottom_up4,
         fib_fast_bottom_up5,
         fib_fast_memoize,
-        fib_fast_lur_cache,
+        fib_fast_lur_cache1,
+        fib_fast_lur_cache2,
         fib_fast_matrix_expt
+    ]
+
+    ordinary_functions = [
+        fib_ordinary2,
+        fib_ordinary3,
+        fib_ordinary4
     ]
 
     def bench(function, numbers):
@@ -366,29 +399,17 @@ if __name__ == "__main__":
 
     for i in range(101):
         y = fib_ordinary1(i)
-        assert y == fib_ordinary2(i)
-        assert y == fib_ordinary3(i)
-        assert y == fib_ordinary4(i)
-        assert y == fib_fast_bottom_up_cached1(i)
-        assert y == fib_fast_bottom_up_cached2(i)
-        assert y == fib_fast_bottom_up1(i)
-        assert y == fib_fast_bottom_up2(i)
-        assert y == fib_fast_bottom_up3(i)
-        assert y == fib_fast_bottom_up4(i)
-        assert y == fib_fast_bottom_up5(i)
-        assert y == fib_fast_memoize(i)
-        assert y == fib_fast_lur_cache(i)
-        assert y == fib_fast_matrix_expt(i)
-
+        for function in fast_functions + ordinary_functions:
+            assert y == function(i)
 
     for e in range(1, 8):
         numbers = gen_randnums(10, maxi=10**e)
         for i in range(2):
-            for function in functions:
+            for function in fast_functions:
                 bench(function, numbers)
             print()
 
 
     print("Time Elapsed:")
-    for function in functions:
+    for function in fast_functions:
         print("%32s: %2.4fs" % (function.__name__, function.elapsed))
