@@ -87,7 +87,7 @@ def fib_fast_memoize(n):
     return F[n]
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=256)
 def fib_fast_lur_cache1(n):
     if n < 16:
         return fib_ordinary4(n)
@@ -101,10 +101,10 @@ def fib_fast_lur_cache1(n):
         return y * (y + 2 * x)
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=256)
 def fib2_fast_lur_cache(n):
     if n < 2:
-        return 0, 1
+        return 0, n
 
     k = n >> 1
     g = -2 if isodd(k) else 2
@@ -120,9 +120,6 @@ def fib2_fast_lur_cache(n):
 
 
 def fib_fast_lur_cache2(n):
-    if n < 2:
-        return n
-
     x, y = fib2_fast_lur_cache(n)
     return y
 
